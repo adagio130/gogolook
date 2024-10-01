@@ -1,15 +1,10 @@
 package entities
 
+import "tasks/constants"
+
 type Task struct {
-	ID      int    `json:"id"`
-	Name    string `json:"name"`
-	Status  Status `json:"status"`
-	Version int    `json:"version"`
+	ID      int              `json:"id"`
+	Name    string           `json:"name"`
+	Status  constants.Status `json:"status"`
+	Version int              `json:"version"`
 }
-
-type Status int
-
-const (
-	Incomplete Status = iota
-	Complete
-)

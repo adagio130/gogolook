@@ -32,6 +32,7 @@ func main() {
 	taskHandler := handler.NewTaskHandler()
 	middleware := []gin.HandlerFunc{}
 	attaches := []router.Attach{
+		router.NewBaseRouter(),
 		router.NewTaskRouter(taskHandler, middleware),
 		router.NewSwaggerRouter(),
 	}

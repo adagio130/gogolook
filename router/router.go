@@ -22,6 +22,9 @@ func (r *baseRouter) Attach(router *gin.Engine) {
 	group.GET("/", func(c *gin.Context) {
 		c.AbortWithStatus(http.StatusOK)
 	})
+	group.GET("/health", func(c *gin.Context) {
+		c.AbortWithStatus(http.StatusOK)
+	})
 }
 
 type taskRouter struct {
@@ -62,4 +65,10 @@ func NewSwaggerRouter() Attach {
 
 func (s swaggerRouter) Attach(router *gin.Engine) {
 	router.GET("/swagger/*any", s.handler)
+}
+
+func NewBaseRouter() Attach {
+	return &baseRouter{
+		rootPath: "/",
+	}
 }
