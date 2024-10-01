@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"tasks/config"
+	"tasks/router/middleware"
 	"time"
 )
 
@@ -25,7 +26,8 @@ func NewServer(conf *config.Config, logger *zap.Logger) *Server {
 	router := gin.New()
 	router.Use(ginzap.Ginzap(logger, time.RFC3339, true))
 	router.Use(gin.Recovery())
-
+	errorMiddleware := middleware.NewResponseMiddleware()
+	router.Use(errorMiddleware.GetResponseHandler())
 	return &Server{
 		port:   serverConf.Port,
 		router: router,

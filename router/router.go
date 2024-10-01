@@ -45,7 +45,7 @@ func (r *taskRouter) Attach(router *gin.Engine) {
 	group := router.Group(r.rootPath, r.middlewares...)
 	group.GET("/", r.handlers.GetTasks)
 	group.POST("/", r.handlers.CreateTask)
-	group.GET("/:id", r.handlers.GetTask)
+	//group.GET("/:id", r.handlers.GetTask)
 	group.PUT("/:id", r.handlers.UpdateTask)
 	group.DELETE("/:id", r.handlers.DeleteTask)
 }

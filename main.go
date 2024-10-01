@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"os"
@@ -11,6 +13,8 @@ import (
 	"syscall"
 	"tasks/config"
 	"tasks/internal/handler"
+	"tasks/internal/repository"
+	"tasks/internal/service"
 	"tasks/router"
 )
 
@@ -29,16 +33,31 @@ func main() {
 	}
 	v.WatchConfig()
 	logger, _ := zap.NewProduction()
-	taskHandler := handler.NewTaskHandler()
-	middleware := []gin.HandlerFunc{}
+	db, err := sql.Open(conf.DB.Driver, conf.DB.Dsn)
+	if err != nil {
+		panic(fmt.Errorf("Fatal error db file: %s \n", err))
+	}
+	db.SetMaxOpenConns(conf.DB.MaxOpen)
+	//db.SetMaxIdleConns(conf.DB.MaxIdle)
+	//db.SetConnMaxLifetime(conf.DB.ConnMaxLifetime)
+	if err = db.Ping(); err != nil {
+		panic(fmt.Errorf("ping db error: %s \n", err))
+	}
+	if err = checkTables(db); err != nil {
+		panic(fmt.Errorf("check tables error: %s \n", err))
+	}
+	taskRepo := repository.NewTaskRepository(db)
+	taskService := service.NewTaskService(taskRepo)
+	taskHandler := handler.NewTaskHandler(taskService)
 	attaches := []router.Attach{
 		router.NewBaseRouter(),
-		router.NewTaskRouter(taskHandler, middleware),
+		router.NewTaskRouter(taskHandler, []gin.HandlerFunc{}),
 		router.NewSwaggerRouter(),
 	}
 	server := router.NewServer(&conf, logger)
 	finishChan := make(chan struct{})
 	defer func() {
+		db.Close()
 		close(finishChan)
 		logger.Info("Server shutdown")
 	}()
@@ -54,4 +73,12 @@ func main() {
 	go server.Run(svcCtx, cancel, finishChan, attaches...)
 	<-finishChan
 	return
+}
+
+func checkTables(db *sql.DB) error {
+	_, err := db.Exec("CREATE TABLE IF NOT EXISTS tasks (id TEXT PRIMARY KEY NOT NULL, name TEXT, status INTEGER, version INTEGER, created_at TEXT)")
+	if err != nil {
+		return err
+	}
+	return nil
 }

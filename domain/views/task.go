@@ -1,14 +1,12 @@
 package views
 
-type GetTaskReq struct {
-	ID string `json:"id" uri:"id" binding:"required"`
-}
+import "tasks/constants"
 
 type GetTasksReq struct {
-	Size   int    `json:"size" form:"size"`
-	Page   int    `json:"page" form:"page"`
-	SortBy string `json:"sort" form:"sort"`
-	Order  string `json:"order" form:"order"`
+	Size   *int    `json:"size"`
+	Page   *int    `json:"page" `
+	SortBy *string `json:"sort"`
+	Order  *string `json:"order"`
 }
 
 type CreateTaskReq struct {
@@ -16,8 +14,9 @@ type CreateTaskReq struct {
 }
 
 type UpdateTaskReq struct {
-	Name   string `json:"name" binding:"required"`
-	Status string `json:"status" binding:"required"`
+	ID     string           `json:"id" uri:"id"`
+	Name   *string          `json:"name"`
+	Status constants.Status `json:"status" binding:"required" enums:"0,1"`
 }
 
 type DeleteTaskReq struct {

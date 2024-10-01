@@ -6,11 +6,9 @@ import (
 )
 
 type TaskRepository interface {
-	Migrate() error
-
-	Find(id string) (entities.Task, error)
-	List() ([]entities.Task, error)
-	Create(task models.Task) error
+	Find(id string) (models.Task, error)
+	List(param entities.TaskQueryParam) ([]entities.Task, error)
+	Create(task entities.Task) error
 	Update(task entities.Task) error
 	Delete(id string) error
 }
