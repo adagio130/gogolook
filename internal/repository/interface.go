@@ -6,6 +6,8 @@ import (
 )
 
 type TaskRepository interface {
+	Migrate() error
+
 	Find(id string) (entities.Task, error)
 	List() ([]entities.Task, error)
 	Create(task models.Task) error

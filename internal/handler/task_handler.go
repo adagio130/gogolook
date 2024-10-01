@@ -1,12 +1,18 @@
 package handler
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"tasks/internal/service"
+)
 
 type taskHandler struct {
+	taskService service.TaskService
 }
 
-func NewTaskHandler() TaskHandler {
-	return &taskHandler{}
+func NewTaskHandler(taskService service.TaskService) TaskHandler {
+	return &taskHandler{
+		taskService: taskService,
+	}
 }
 
 func (h *taskHandler) GetTasks(ginCtx *gin.Context) {
