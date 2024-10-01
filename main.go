@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
 	"syscall"
 	"tasks/config"
+	"tasks/internal/handler"
 	"tasks/router"
 )
 
@@ -27,16 +29,28 @@ func main() {
 	}
 	v.WatchConfig()
 	logger, _ := zap.NewProduction()
+	taskHandler := handler.NewTaskHandler()
+	middleware := []gin.HandlerFunc{}
+	attaches := []router.Attach{
+		router.NewTaskRouter(taskHandler, middleware),
+		router.NewSwaggerRouter(),
+	}
 	server := router.NewServer(&conf, logger)
-	//server.SetupRouter(routeHandler *router.Router)
-	go server.Run(svcCtx, cancel)
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
-	<-signalChan
-	logger.Info("Received shutdown signal")
-	cancel()
+	finishChan := make(chan struct{})
 	defer func() {
-		signal.Stop(signalChan)
+		close(finishChan)
+		logger.Info("Server shutdown")
 	}()
-	logger.Info("Finish")
+	go func() {
+		signalChan := make(chan os.Signal, 2)
+		defer signal.Stop(signalChan)
+
+		signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+		<-signalChan
+		logger.Info("Received shutdown signal")
+		cancel()
+	}()
+	go server.Run(svcCtx, cancel, finishChan, attaches...)
+	<-finishChan
+	return
 }

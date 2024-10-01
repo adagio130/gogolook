@@ -1,7 +1,11 @@
 package handler
 
-import "context"
+import "github.com/gin-gonic/gin"
 
 type TaskHandler interface {
-	GetTasks(ctx context.Context, size int, page int) (interface{}, error)
+	GetTasks(ginCtx *gin.Context)
+	CreateTask(ginCtx *gin.Context)
+	GetTask(ginCtx *gin.Context)
+	UpdateTask(ginCtx *gin.Context)
+	DeleteTask(ginCtx *gin.Context)
 }

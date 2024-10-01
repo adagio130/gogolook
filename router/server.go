@@ -26,10 +26,6 @@ func NewServer(conf *config.Config, logger *zap.Logger) *Server {
 	router.Use(ginzap.Ginzap(logger, time.RFC3339, true))
 	router.Use(gin.Recovery())
 
-	router.GET("ping/", func(c *gin.Context) {
-		c.AbortWithStatus(http.StatusOK)
-	})
-
 	return &Server{
 		port:   serverConf.Port,
 		router: router,
@@ -37,21 +33,22 @@ func NewServer(conf *config.Config, logger *zap.Logger) *Server {
 	}
 }
 
-func (s *Server) Run(ctx context.Context, cancel context.CancelFunc) {
+func (s *Server) Run(ctx context.Context, cancel context.CancelFunc, finishChan chan struct{}, attaches ...Attach) {
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%s", s.port),
 		Handler: s.router,
 	}
-	defer func() {
+	go func() {
 		<-ctx.Done()
-		s.logger.Info("Shutting down server...")
-		if err := httpServer.Shutdown(ctx); err != nil {
-			s.logger.Error("http server shutdown error", zap.Error(err))
-		}
-
+		s.Shutdown(httpServer, ctx)
+		finishChan <- struct{}{}
 	}()
+	for _, a := range attaches {
+		a.Attach(s.router)
+	}
 	s.logger.Info("run http server address success", zap.String("address", httpServer.Addr))
-	if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	err := httpServer.ListenAndServe()
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		s.logger.Error("run http server error", zap.Error(err))
 		cancel()
 	}
@@ -62,4 +59,5 @@ func (s *Server) Shutdown(httpServer *http.Server, ctx context.Context) {
 	if err := httpServer.Shutdown(ctx); err != nil {
 		s.logger.Error("http server shutdown error", zap.Error(err))
 	}
+	s.logger.Info("Server shutdown complete")
 }
