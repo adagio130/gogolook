@@ -136,5 +136,4 @@ curl -X DELETE http://localhost:8888/tasks/task-1
 
 - **`make build`**: Builds the Docker image for the application.
 - **`make run`**: Runs the application in a Docker container, exposing it on port 8080.
-- **`make test`**: Runs the unit tests for the project.
 - **`make clean`**: Cleans up any Docker images and containers.
