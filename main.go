@@ -21,41 +21,11 @@ import (
 func main() {
 	ctx := context.Background()
 	svcCtx, cancel := context.WithCancel(ctx)
-
-	v := viper.New()
-	v.SetConfigFile("config.yaml")
-	if err := v.ReadInConfig(); err != nil {
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
-	}
-	var conf config.Config
-	if err := v.Unmarshal(&conf); err != nil {
-		panic(fmt.Errorf("umarshal config error: %s \n", err))
-	}
-	v.WatchConfig()
 	logger, _ := zap.NewProduction()
-	db, err := sql.Open(conf.DB.Driver, conf.DB.Dsn)
-	if err != nil {
-		panic(fmt.Errorf("Fatal error db file: %s \n", err))
-	}
-	db.SetMaxOpenConns(conf.DB.MaxOpen)
-	//db.SetMaxIdleConns(conf.DB.MaxIdle)
-	//db.SetConnMaxLifetime(conf.DB.ConnMaxLifetime)
-	if err = db.Ping(); err != nil {
-		panic(fmt.Errorf("ping db error: %s \n", err))
-	}
-	if err = checkTables(db); err != nil {
-		panic(fmt.Errorf("check tables error: %s \n", err))
-	}
-	taskRepo := repository.NewTaskRepository(db, logger)
-	taskService := service.NewTaskService(taskRepo)
-	taskHandler := handler.NewTaskHandler(taskService)
-	attaches := []router.Attach{
-		router.NewBaseRouter(),
-		router.NewTaskRouter(taskHandler, []gin.HandlerFunc{}),
-		router.NewSwaggerRouter(),
-	}
-	server := router.NewServer(&conf, logger)
+	conf := initConfig()
+	db := initStorage(conf)
 	finishChan := make(chan struct{})
+	attaches, server := initServer(db, logger, conf)
 	defer func() {
 		db.Close()
 		close(finishChan)
@@ -73,6 +43,48 @@ func main() {
 	server.Run(svcCtx, cancel, finishChan, attaches...)
 	<-finishChan
 	return
+}
+
+func initConfig() config.Config {
+	v := viper.New()
+	v.SetConfigFile("config.yaml")
+	if err := v.ReadInConfig(); err != nil {
+		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+	}
+	var conf config.Config
+	if err := v.Unmarshal(&conf); err != nil {
+		panic(fmt.Errorf("umarshal config error: %s \n", err))
+	}
+	v.WatchConfig()
+	return conf
+}
+
+func initServer(db *sql.DB, logger *zap.Logger, conf config.Config) ([]router.Attach, *router.Server) {
+	taskRepo := repository.NewTaskRepository(db, logger)
+	taskService := service.NewTaskService(taskRepo)
+	taskHandler := handler.NewTaskHandler(taskService)
+	attaches := []router.Attach{
+		router.NewBaseRouter(),
+		router.NewTaskRouter(taskHandler, []gin.HandlerFunc{}),
+	}
+	server := router.NewServer(&conf, logger)
+
+	return attaches, server
+}
+
+func initStorage(conf config.Config) *sql.DB {
+	db, err := sql.Open(conf.DB.Driver, conf.DB.Dsn)
+	if err != nil {
+		panic(fmt.Errorf("Fatal error db file: %s \n", err))
+	}
+	db.SetMaxOpenConns(conf.DB.MaxOpen)
+	if err = db.Ping(); err != nil {
+		panic(fmt.Errorf("ping db error: %s \n", err))
+	}
+	if err = checkTables(db); err != nil {
+		panic(fmt.Errorf("check tables error: %s \n", err))
+	}
+	return db
 }
 
 func checkTables(db *sql.DB) error {

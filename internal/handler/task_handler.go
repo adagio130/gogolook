@@ -32,13 +32,11 @@ func NewTaskHandler(taskService service.TaskService) TaskHandler {
 // @Produce json
 // @Param size query int false "size"
 // @Param offset query int false "offset"
-// @Param sort_by query string false "sort_by"
-// @Param order query string false "order"
 // @Success 200 {object} entities.Tasks
 // @Router /tasks [get]
 func (h *taskHandler) GetTasks(ginCtx *gin.Context) {
 	ctx := context.Background()
-	query := formatQuery(ginCtx.Query("size"), ginCtx.Query("page"), ginCtx.Query("sort_by"), ginCtx.Query("order"))
+	query := formatQuery(ginCtx.Query("size"), ginCtx.Query("page"))
 	tasks, err := h.taskService.GetTasks(ctx, query)
 	if err != nil {
 		_ = ginCtx.Error(err)
@@ -47,13 +45,11 @@ func (h *taskHandler) GetTasks(ginCtx *gin.Context) {
 	ginCtx.JSON(http.StatusOK, tasks)
 }
 
-func formatQuery(size, page, sort, order string) entities.TaskQueryParam {
+func formatQuery(size, page string) entities.TaskQueryParam {
 	defaultSize := 10
 	result := entities.TaskQueryParam{
 		Size:   defaultSize,
 		Offset: 0,
-		SortBy: "created_at",
-		Order:  "desc",
 	}
 	s, err := strconv.Atoi(size)
 	if err == nil && s > 0 {
@@ -63,23 +59,18 @@ func formatQuery(size, page, sort, order string) entities.TaskQueryParam {
 	if err == nil && p > 0 {
 		result.Offset = (p - 1) * result.Size
 	}
-	if sort != "" {
-		result.SortBy = sort
-	}
-	if order == "asc" || order == "desc" {
-		result.Order = order
-	}
 	return result
 }
 
 // CreateTask godoc
-// @Summary Create task
-// @Description Create task
+// @Summary Create a new task
+// @Description Create a new task with a name and status
 // @Tags tasks
 // @Accept json
-// @Produce json
-// @Param task body views.CreateTaskReq true "task"
+// @Param task body views.CreateTaskReq true "Task information"
 // @Success 201
+// @Failure 400 {object} error "request is invalid"
+// @Failure 500 {object} error "server internal error"
 // @Router /tasks [post]
 func (h *taskHandler) CreateTask(ginCtx *gin.Context) {
 	var req views.CreateTaskReq
@@ -108,10 +99,12 @@ func (h *taskHandler) CreateTask(ginCtx *gin.Context) {
 // @Description Update task
 // @Tags tasks
 // @Accept json
-// @Produce json
 // @Param id path string true "task id"
 // @Param task body views.UpdateTaskReq true "task"
 // @Success 204
+// @Failure 400 {object} error "request is invalid"
+// @Failure 404 {object} error "task not found"
+// @Failure 500 {object} error "server internal error"
 // @Router /tasks/{id} [put]
 func (h *taskHandler) UpdateTask(ginCtx *gin.Context) {
 	taskId := ginCtx.Param("id")
@@ -150,9 +143,11 @@ func (h *taskHandler) UpdateTask(ginCtx *gin.Context) {
 // @Description Delete task
 // @Tags tasks
 // @Accept json
-// @Produce json
 // @Param id path string true "task id"
 // @Success 204
+// @Failure 400 {object} error "request is invalid"
+// @Failure 404 {object} error "task not found"
+// @Failure 500 {object} error "server internal error"
 // @Router /tasks/{id} [delete]
 func (h *taskHandler) DeleteTask(ginCtx *gin.Context) {
 	taskId := ginCtx.Param("id")

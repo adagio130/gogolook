@@ -20,8 +20,6 @@ type Tasks struct {
 }
 
 type TaskQueryParam struct {
-	Size   int    `json:"size"`
-	Offset int    `json:"offset"`
-	SortBy string `json:"order_by"`
-	Order  string `json:"sort"`
+	Size   int `json:"size"`
+	Offset int `json:"offset"`
 }

@@ -40,18 +40,6 @@ const docTemplate = `{
                         "description": "offset",
                         "name": "offset",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "sort_by",
-                        "name": "sort_by",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "order",
-                        "name": "order",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -64,20 +52,17 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create task",
+                "description": "Create a new task with a name and status",
                 "consumes": [
-                    "application/json"
-                ],
-                "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "tasks"
                 ],
-                "summary": "Create task",
+                "summary": "Create a new task",
                 "parameters": [
                     {
-                        "description": "task",
+                        "description": "Task information",
                         "name": "task",
                         "in": "body",
                         "required": true,
@@ -89,6 +74,14 @@ const docTemplate = `{
                 "responses": {
                     "201": {
                         "description": "Created"
+                    },
+                    "400": {
+                        "description": "request is invalid",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "server internal error",
+                        "schema": {}
                     }
                 }
             }
@@ -97,9 +90,6 @@ const docTemplate = `{
             "put": {
                 "description": "Update task",
                 "consumes": [
-                    "application/json"
-                ],
-                "produces": [
                     "application/json"
                 ],
                 "tags": [
@@ -127,15 +117,24 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "400": {
+                        "description": "request is invalid",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "task not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "server internal error",
+                        "schema": {}
                     }
                 }
             },
             "delete": {
                 "description": "Delete task",
                 "consumes": [
-                    "application/json"
-                ],
-                "produces": [
                     "application/json"
                 ],
                 "tags": [
@@ -154,6 +153,18 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "400": {
+                        "description": "request is invalid",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "task not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "server internal error",
+                        "schema": {}
                     }
                 }
             }
@@ -240,6 +251,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	//LeftDelim:        "{{",
+	//RightDelim:       "}}",
 }
 
 func init() {

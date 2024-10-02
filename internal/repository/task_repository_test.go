@@ -44,7 +44,7 @@ func Test_taskRepository_Find(t *testing.T) {
 
 		task, err := repo.Find("task-123")
 		assert.Nil(t, task)
-		assert.True(t, errors.Is(err, customError.DataNotFound))
+		assert.True(t, errors.Is(err, customError.TaskNotFound))
 
 		mock.ExpectationsWereMet()
 	})
@@ -62,51 +62,51 @@ func Test_taskRepository_Find(t *testing.T) {
 	})
 }
 
-//func Test_taskRepository_List(t *testing.T) {
-//	db, mock, err := sqlmock.New()
-//	assert.NoError(t, err)
-//	defer db.Close()
-//
-//	logger := zap.NewNop() // 使用空的 logger
-//	repo := NewTaskRepository(db, logger)
-//
-//	columns := []string{"id", "name", "status", "version"}
-//
-//	t.Run("successfully list tasks", func(t *testing.T) {
-//		mock.ExpectQuery("SELECT id,name,status,version FROM tasks LIMIT ? OFFSET ?").
-//			WithArgs(10, 0).
-//			WillReturnRows(sqlmock.NewRows(columns).AddRow("task-123", "Test Task", 0, 1))
-//
-//		param := entities.TaskQueryParam{
-//			Size:   10,
-//			Offset: 0,
-//		}
-//
-//		tasks, err := repo.List(param)
-//		assert.NoError(t, err)
-//		assert.Len(t, tasks, 1)
-//		assert.Equal(t, "task-123", tasks[0].ID)
-//
-//		mock.ExpectationsWereMet()
-//	})
-//
-//	t.Run("list tasks error", func(t *testing.T) {
-//		mock.ExpectQuery("SELECT id,name,status,version FROM tasks LIMIT ? OFFSET ?").
-//			WithArgs(10, 0).
-//			WillReturnError(errors.New("db error"))
-//
-//		param := entities.TaskQueryParam{
-//			Size:   10,
-//			Offset: 0,
-//		}
-//
-//		tasks, err := repo.List(param)
-//		assert.Nil(t, tasks)
-//		assert.EqualError(t, err, "db error")
-//
-//		mock.ExpectationsWereMet()
-//	})
-//}
+func Test_taskRepository_List(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	logger := zap.NewNop() // 使用空的 logger
+	repo := NewTaskRepository(db, logger)
+
+	columns := []string{"id", "name", "status", "version"}
+
+	t.Run("successfully list tasks", func(t *testing.T) {
+		mock.ExpectQuery("SELECT id,name,status,version FROM tasks LIMIT ? OFFSET ?").
+			WithArgs(10, 0).
+			WillReturnRows(sqlmock.NewRows(columns).AddRow("task-123", "Test Task", 0, 1))
+
+		param := entities.TaskQueryParam{
+			Size:   10,
+			Offset: 0,
+		}
+
+		tasks, err := repo.List(param)
+		assert.NoError(t, err)
+		assert.Len(t, tasks, 1)
+		assert.Equal(t, "task-123", tasks[0].ID)
+
+		mock.ExpectationsWereMet()
+	})
+
+	t.Run("list tasks error", func(t *testing.T) {
+		mock.ExpectQuery("*").
+			WithArgs(10, 0).
+			WillReturnError(errors.New("db error"))
+
+		param := entities.TaskQueryParam{
+			Size:   10,
+			Offset: 0,
+		}
+
+		tasks, err := repo.List(param)
+		assert.Nil(t, tasks)
+		assert.EqualError(t, err, "db error")
+
+		mock.ExpectationsWereMet()
+	})
+}
 
 func Test_taskRepository_Create(t *testing.T) {
 	db, mock, err := sqlmock.New()

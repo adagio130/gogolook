@@ -60,14 +60,6 @@ paths:
         in: query
         name: offset
         type: integer
-      - description: sort_by
-        in: query
-        name: sort_by
-        type: string
-      - description: order
-        in: query
-        name: order
-        type: string
       produces:
       - application/json
       responses:
@@ -81,20 +73,24 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create task
+      description: Create a new task with a name and status
       parameters:
-      - description: task
+      - description: Task information
         in: body
         name: task
         required: true
         schema:
           $ref: '#/definitions/views.CreateTaskReq'
-      produces:
-      - application/json
       responses:
         "201":
           description: Created
-      summary: Create task
+        "400":
+          description: request is invalid
+          schema: {}
+        "500":
+          description: server internal error
+          schema: {}
+      summary: Create a new task
       tags:
       - tasks
   /tasks/{id}:
@@ -108,11 +104,18 @@ paths:
         name: id
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "204":
           description: No Content
+        "400":
+          description: request is invalid
+          schema: {}
+        "404":
+          description: task not found
+          schema: {}
+        "500":
+          description: server internal error
+          schema: {}
       summary: Delete task
       tags:
       - tasks
@@ -132,11 +135,18 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/views.UpdateTaskReq'
-      produces:
-      - application/json
       responses:
         "204":
           description: No Content
+        "400":
+          description: request is invalid
+          schema: {}
+        "404":
+          description: task not found
+          schema: {}
+        "500":
+          description: server internal error
+          schema: {}
       summary: Update task
       tags:
       - tasks

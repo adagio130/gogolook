@@ -7,8 +7,10 @@ build:
 
 run:
 	@echo "Running the application..."
-	docker run --rm -p 8888:8888 --name gogolook $(DOCKER_IMAGE)
+	docker run --rm -p 8888:8888 --name ${APP_NAME} $(DOCKER_IMAGE)
 
 clean:
 	@echo "Cleaning up Docker images..."
+	docker stop ${APP_NAME} || true
+	docker rm $(APP_NAME) || true
 	docker rmi $(DOCKER_IMAGE) || true

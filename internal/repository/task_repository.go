@@ -25,7 +25,7 @@ func (t *taskRepository) Find(id string) (*models.Task, error) {
 	if err != nil {
 		t.logger.Error("Find task error", zap.String("id", id), zap.Error(err))
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, customError.DataNotFound.Wrap(err, "task not found")
+			return nil, customError.TaskNotFound.Wrap(err, "task not found")
 		}
 		return nil, err
 	}
@@ -36,6 +36,7 @@ func (t *taskRepository) List(param entities.TaskQueryParam) ([]*models.Task, er
 	rows, err := t.conn.Query("SELECT id,name,status,version FROM tasks LIMIT ? OFFSET ? ", param.Size, param.Offset)
 	defer rows.Close()
 	if err != nil {
+		t.logger.Error("List task error", zap.Any("param", param), zap.Error(err))
 		return nil, err
 	}
 	result := make([]*models.Task, 0)
@@ -43,6 +44,7 @@ func (t *taskRepository) List(param entities.TaskQueryParam) ([]*models.Task, er
 		task := models.Task{}
 		err = rows.Scan(&task.ID, &task.Name, &task.Status, &task.Version)
 		if err != nil {
+			t.logger.Error("Scan task error", zap.Any("param", param), zap.Error(err))
 			return nil, err
 		}
 		result = append(result, &task)
@@ -54,10 +56,12 @@ func (t *taskRepository) List(param entities.TaskQueryParam) ([]*models.Task, er
 func (t *taskRepository) Create(task entities.Task) error {
 	stmt, err := t.conn.Prepare("INSERT INTO tasks (id, name, status, version, created_at) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
+		t.logger.Error("Prepare insert stmt error", zap.Any("task", task), zap.Error(err))
 		return err
 	}
 	_, err = stmt.Exec(task.ID, task.Name, task.Status, task.Version, task.CreatedAt)
 	if err != nil {
+		t.logger.Error("Execute insert stmt error", zap.Any("task", task), zap.Error(err))
 		return err
 	}
 	return nil
@@ -71,6 +75,7 @@ func (t *taskRepository) Update(task entities.Task) error {
 	version := record.Version + 1
 	stmt, err := t.conn.Prepare("UPDATE tasks SET name = ?, status = ?, version = ? WHERE id = ? and version = ?")
 	if err != nil {
+		t.logger.Error("Prepare update stmt error", zap.String("id", task.ID), zap.Error(err))
 		return err
 	}
 	name := task.Name
@@ -79,6 +84,7 @@ func (t *taskRepository) Update(task entities.Task) error {
 	}
 	_, err = stmt.Exec(name, task.Status, version, task.ID, record.Version)
 	if err != nil {
+		t.logger.Error("Execute update stmt error", zap.String("id", task.ID), zap.Error(err))
 		return err
 	}
 	return nil
@@ -89,13 +95,18 @@ func (t *taskRepository) Delete(id string) error {
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(id)
+	rows, err := stmt.Exec(id)
 	if err != nil {
-		t.logger.Error("Find task error", zap.String("id", id), zap.Error(err))
-		if errors.Is(err, sql.ErrNoRows) {
-			return customError.DataNotFound.Wrap(err, "task not found")
-		}
+		t.logger.Error("Execute delete stmt error", zap.String("id", id), zap.Error(err))
 		return err
+	}
+	effectRows, err := rows.RowsAffected()
+	if err != nil {
+		t.logger.Error("Execute delete stmt error", zap.String("id", id), zap.Error(err))
+		return err
+	}
+	if effectRows == 0 {
+		return customError.TaskNotFound.New("task not found")
 	}
 	return nil
 }

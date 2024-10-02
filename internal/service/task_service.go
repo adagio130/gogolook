@@ -44,7 +44,6 @@ func (t *taskService) GetTasks(ctx context.Context, param entities.TaskQueryPara
 			Name:    task.Name,
 			Status:  constants.Status(task.Status),
 			Version: task.Version,
-			//CreatedAt: task.CreatedAt,
 		})
 
 	}
