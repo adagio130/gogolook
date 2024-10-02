@@ -11,7 +11,6 @@ This is a simple Task Management API project built with Go. It allows you to cre
 - [API Endpoints](#api-endpoints)
 - [Usage](#usage)
 - [Makefile Commands](#makefile-commands)
-- [License](#license)
 
 ## Features
 
@@ -139,7 +138,3 @@ curl -X DELETE http://localhost:8888/tasks/task-1
 - **`make run`**: Runs the application in a Docker container, exposing it on port 8080.
 - **`make test`**: Runs the unit tests for the project.
 - **`make clean`**: Cleans up any Docker images and containers.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
