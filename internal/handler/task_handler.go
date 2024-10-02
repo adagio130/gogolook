@@ -131,7 +131,7 @@ func (h *taskHandler) UpdateTask(ginCtx *gin.Context) {
 		return
 	}
 	if req.Status != constants.Complete && req.Status != constants.Incomplete {
-		_ = ginCtx.Error(customError.InvalidRequest.New("should bind json error"))
+		_ = ginCtx.Error(customError.InvalidRequest.New("status not supported"))
 		return
 	}
 	ctx := context.Background()
