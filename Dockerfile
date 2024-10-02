@@ -8,6 +8,7 @@ COPY . .
 RUN go env -w CGO_ENABLED=1
 RUN go mod tidy
 
+RUN go test -v ./...
 RUN go build -o main .
 
 FROM alpine:latest

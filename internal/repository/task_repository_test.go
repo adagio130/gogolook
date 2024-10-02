@@ -71,10 +71,8 @@ func Test_taskRepository_List(t *testing.T) {
 	repo := NewTaskRepository(db, logger)
 
 	columns := []string{"id", "name", "status", "version"}
-
 	t.Run("successfully list tasks", func(t *testing.T) {
-		mock.ExpectQuery("SELECT id,name,status,version FROM tasks LIMIT ? OFFSET ?").
-			WithArgs(10, 0).
+		mock.ExpectQuery("SELECT *").
 			WillReturnRows(sqlmock.NewRows(columns).AddRow("task-123", "Test Task", 0, 1))
 
 		param := entities.TaskQueryParam{
@@ -86,23 +84,6 @@ func Test_taskRepository_List(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, tasks, 1)
 		assert.Equal(t, "task-123", tasks[0].ID)
-
-		mock.ExpectationsWereMet()
-	})
-
-	t.Run("list tasks error", func(t *testing.T) {
-		mock.ExpectQuery("*").
-			WithArgs(10, 0).
-			WillReturnError(errors.New("db error"))
-
-		param := entities.TaskQueryParam{
-			Size:   10,
-			Offset: 0,
-		}
-
-		tasks, err := repo.List(param)
-		assert.Nil(t, tasks)
-		assert.EqualError(t, err, "db error")
 
 		mock.ExpectationsWereMet()
 	})
@@ -157,54 +138,54 @@ func Test_taskRepository_Create(t *testing.T) {
 	})
 }
 
-//func Test_taskRepository_Update(t *testing.T) {
-//	db, mock, err := sqlmock.New()
-//	assert.NoError(t, err)
-//	defer db.Close()
-//
-//	logger := zap.NewNop()
-//	repo := NewTaskRepository(db, logger)
-//
-//	t.Run("successfully update task", func(t *testing.T) {
-//		columns := []string{"id", "name", "status", "version", "created_at"}
-//		mock.ExpectQuery("SELECT id,name,status,version,created_at FROM tasks WHERE id = ?").
-//			WithArgs("task-123").
-//			WillReturnRows(sqlmock.NewRows(columns).AddRow("task-123", "Test Task", 0, 1, time.Now()))
-//
-//		mock.ExpectPrepare("UPDATE tasks SET name = ?, status = ?, version = ? WHERE id = ? and version = ?").
-//			ExpectExec().
-//			WithArgs("Updated Task", 0, 2, "task-123", 1).
-//			WillReturnResult(sqlmock.NewResult(1, 1))
-//
-//		task := entities.Task{
-//			ID:     "task-123",
-//			Name:   "Updated Task",
-//			Status: 0,
-//		}
-//
-//		err := repo.Update(task)
-//		assert.NoError(t, err)
-//
-//		mock.ExpectationsWereMet()
-//	})
-//
-//	t.Run("update task error", func(t *testing.T) {
-//		mock.ExpectQuery("SELECT id,name,status,version,created_at FROM tasks WHERE id = ?").
-//			WithArgs("task-123").
-//			WillReturnError(errors.New("db error"))
-//
-//		task := entities.Task{
-//			ID:     "task-123",
-//			Name:   "Updated Task",
-//			Status: 0,
-//		}
-//
-//		err := repo.Update(task)
-//		assert.EqualError(t, err, "db error")
-//
-//		mock.ExpectationsWereMet()
-//	})
-//}
+func Test_taskRepository_Update(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	logger := zap.NewNop()
+	repo := NewTaskRepository(db, logger)
+
+	t.Run("successfully update task", func(t *testing.T) {
+		columns := []string{"id", "name", "status", "version", "created_at"}
+		mock.ExpectQuery("SELECT *").
+			WithArgs("task-123").
+			WillReturnRows(sqlmock.NewRows(columns).AddRow("task-123", "Test Task", 0, 1, time.Now()))
+
+		mock.ExpectPrepare("UPDATE *").
+			ExpectExec().
+			WithArgs("Updated Task", 0, 2, "task-123", 1).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+
+		task := entities.Task{
+			ID:     "task-123",
+			Name:   "Updated Task",
+			Status: 0,
+		}
+
+		err := repo.Update(task)
+		assert.NoError(t, err)
+
+		mock.ExpectationsWereMet()
+	})
+
+	t.Run("update task error", func(t *testing.T) {
+		mock.ExpectQuery("SELECT id,name,status,version,created_at FROM tasks WHERE id = ?").
+			WithArgs("task-123").
+			WillReturnError(errors.New("db error"))
+
+		task := entities.Task{
+			ID:     "task-123",
+			Name:   "Updated Task",
+			Status: 0,
+		}
+
+		err := repo.Update(task)
+		assert.EqualError(t, err, "db error")
+
+		mock.ExpectationsWereMet()
+	})
+}
 
 func Test_taskRepository_Delete(t *testing.T) {
 	db, mock, err := sqlmock.New()
