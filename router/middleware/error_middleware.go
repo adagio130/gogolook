@@ -97,9 +97,8 @@ func (m *ResponseMiddleware) GetResponseHandler() gin.HandlerFunc {
 func (m *ResponseMiddleware) makeErrorResp(code int, message string, traceID string) gin.H {
 	return gin.H{
 		"error": gin.H{
-			"code":     code,
-			"message":  message,
-			"trace_id": traceID,
+			"code":    code,
+			"message": message,
 		},
 	}
 }
