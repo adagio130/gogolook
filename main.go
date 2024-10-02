@@ -70,7 +70,7 @@ func main() {
 		logger.Info("Received shutdown signal")
 		cancel()
 	}()
-	go server.Run(svcCtx, cancel, finishChan, attaches...)
+	server.Run(svcCtx, cancel, finishChan, attaches...)
 	<-finishChan
 	return
 }
