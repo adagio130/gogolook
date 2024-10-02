@@ -16,7 +16,6 @@ const (
 	StatusInternalServerError Status = "InternalServerError"
 	StatusServiceUnavailable  Status = "ServiceUnavailable"
 	StatusGatewayTimeout      Status = "GatewayTimeout"
-	StatusPaymentRequire      Status = "PaymentRequire"
 )
 
 func (s Status) ToHTTPStatus() int {
@@ -39,8 +38,6 @@ func (s Status) ToHTTPStatus() int {
 		return http.StatusServiceUnavailable
 	case StatusGatewayTimeout:
 		return http.StatusGatewayTimeout
-	case StatusPaymentRequire:
-		return http.StatusPaymentRequired
 	default:
 		return http.StatusInternalServerError
 	}

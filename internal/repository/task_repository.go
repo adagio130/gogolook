@@ -2,9 +2,11 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"go.uber.org/zap"
 	"tasks/domain/entities"
 	"tasks/domain/models"
+	customError "tasks/errors"
 )
 
 type taskRepository struct {
@@ -22,6 +24,9 @@ func (t *taskRepository) Find(id string) (*models.Task, error) {
 	err := row.Scan(&task.ID, &task.Name, &task.Status, &task.Version, &task.CreatedAt)
 	if err != nil {
 		t.logger.Error("Find task error", zap.String("id", id), zap.Error(err))
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, customError.DataNotFound.Wrap(err, "task not found")
+		}
 		return nil, err
 	}
 	return &task, nil
@@ -86,6 +91,10 @@ func (t *taskRepository) Delete(id string) error {
 	}
 	_, err = stmt.Exec(id)
 	if err != nil {
+		t.logger.Error("Find task error", zap.String("id", id), zap.Error(err))
+		if errors.Is(err, sql.ErrNoRows) {
+			return customError.DataNotFound.Wrap(err, "task not found")
+		}
 		return err
 	}
 	return nil

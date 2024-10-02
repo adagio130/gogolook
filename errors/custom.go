@@ -12,6 +12,7 @@ var (
 	InvalidArgument     = NewCustomError(559001001, StatusBadRequest, "invalid argument")
 	InternalServerPanic = NewCustomError(559201000, StatusInternalServerError, "internal server panic")
 	InternalServerError = NewCustomError(559201001, StatusInternalServerError, "internal server error")
+	DataNotFound        = NewCustomError(559201003, StatusNotFound, "data not found")
 )
 
 type CustomError struct {

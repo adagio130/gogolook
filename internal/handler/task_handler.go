@@ -34,9 +34,7 @@ func NewTaskHandler(taskService service.TaskService) TaskHandler {
 // @Param offset query int false "offset"
 // @Param sort_by query string false "sort_by"
 // @Param order query string false "order"
-// @Success 200 {array} Task
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} entities.Tasks
 // @Router /tasks [get]
 func (h *taskHandler) GetTasks(ginCtx *gin.Context) {
 	ctx := context.Background()
@@ -80,10 +78,8 @@ func formatQuery(size, page, sort, order string) entities.TaskQueryParam {
 // @Tags tasks
 // @Accept json
 // @Produce json
-// @Param task body CreateTaskReq true "task"
+// @Param task body views.CreateTaskReq true "task"
 // @Success 201
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
 // @Router /tasks [post]
 func (h *taskHandler) CreateTask(ginCtx *gin.Context) {
 	var req views.CreateTaskReq
@@ -114,10 +110,8 @@ func (h *taskHandler) CreateTask(ginCtx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "task id"
-// @Param task body UpdateTaskReq true "task"
+// @Param task body views.UpdateTaskReq true "task"
 // @Success 204
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
 // @Router /tasks/{id} [put]
 func (h *taskHandler) UpdateTask(ginCtx *gin.Context) {
 	taskId := ginCtx.Param("id")
@@ -159,8 +153,6 @@ func (h *taskHandler) UpdateTask(ginCtx *gin.Context) {
 // @Produce json
 // @Param id path string true "task id"
 // @Success 204
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
 // @Router /tasks/{id} [delete]
 func (h *taskHandler) DeleteTask(ginCtx *gin.Context) {
 	taskId := ginCtx.Param("id")
@@ -170,6 +162,7 @@ func (h *taskHandler) DeleteTask(ginCtx *gin.Context) {
 	}
 	ctx := context.Background()
 	err := h.taskService.DeleteTask(ctx, taskId)
+
 	if err != nil {
 		_ = ginCtx.Error(err)
 		return

@@ -20,7 +20,11 @@ func (t *taskService) CreateTask(ctx context.Context, param entities.Task) error
 }
 
 func (t *taskService) UpdateTask(ctx context.Context, param entities.Task) error {
-	return t.repo.Update(param)
+	err := t.repo.Update(param)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (t *taskService) DeleteTask(ctx context.Context, taskId string) error {

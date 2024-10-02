@@ -1,0 +1,143 @@
+definitions:
+  constants.Status:
+    enum:
+    - 0
+    - 1
+    type: integer
+    x-enum-varnames:
+    - Incomplete
+    - Complete
+  entities.Task:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        $ref: '#/definitions/constants.Status'
+    type: object
+  entities.Tasks:
+    properties:
+      page:
+        type: integer
+      size:
+        type: integer
+      tasks:
+        items:
+          $ref: '#/definitions/entities.Task'
+        type: array
+    type: object
+  views.CreateTaskReq:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  views.UpdateTaskReq:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        $ref: '#/definitions/constants.Status'
+    type: object
+info:
+  contact: {}
+paths:
+  /tasks:
+    get:
+      consumes:
+      - application/json
+      description: Get tasks
+      parameters:
+      - description: size
+        in: query
+        name: size
+        type: integer
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      - description: sort_by
+        in: query
+        name: sort_by
+        type: string
+      - description: order
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.Tasks'
+      summary: Get tasks
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Create task
+      parameters:
+      - description: task
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/views.CreateTaskReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+      summary: Create task
+      tags:
+      - tasks
+  /tasks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete task
+      parameters:
+      - description: task id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Delete task
+      tags:
+      - tasks
+    put:
+      consumes:
+      - application/json
+      description: Update task
+      parameters:
+      - description: task id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: task
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/views.UpdateTaskReq'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Update task
+      tags:
+      - tasks
+swagger: "2.0"
