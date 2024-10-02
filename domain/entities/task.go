@@ -9,13 +9,13 @@ type Task struct {
 	ID        string           `json:"id"`
 	Name      string           `json:"name"`
 	Status    constants.Status `json:"status"`
-	Version   int              `json:"version"`
-	CreatedAt time.Time        `json:"created_at"`
+	Version   int              `json:"-"`
+	CreatedAt time.Time        `json:"-"`
 }
 
 type Tasks struct {
 	Tasks []Task `json:"tasks"`
-	Limit int    `json:"limit"`
+	Size  int    `json:"size"`
 	Page  int    `json:"page"`
 }
 

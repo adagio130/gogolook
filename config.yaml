@@ -4,5 +4,5 @@ server:
 
 db:
     driver: sqlite3
-    dsn: file:test.db?cache=shared&mode=memory
+    dsn: file::memory:?cache=shared&mode=memory
     maxopen: 10

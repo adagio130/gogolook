@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
+	"strconv"
 	"tasks/constants"
 	"tasks/domain/entities"
 	"tasks/domain/views"
@@ -38,13 +39,8 @@ func NewTaskHandler(taskService service.TaskService) TaskHandler {
 // @Failure 500 {object} ErrorResponse
 // @Router /tasks [get]
 func (h *taskHandler) GetTasks(ginCtx *gin.Context) {
-	var req views.GetTasksReq
-	if err := ginCtx.ShouldBindQuery(&req); err != nil {
-		_ = ginCtx.Error(customError.InvalidRequest.Wrap(err, "should bind query error"))
-		return
-	}
 	ctx := context.Background()
-	query := formatQuery(req)
+	query := formatQuery(ginCtx.Query("size"), ginCtx.Query("page"), ginCtx.Query("sort_by"), ginCtx.Query("order"))
 	tasks, err := h.taskService.GetTasks(ctx, query)
 	if err != nil {
 		_ = ginCtx.Error(err)
@@ -53,7 +49,7 @@ func (h *taskHandler) GetTasks(ginCtx *gin.Context) {
 	ginCtx.JSON(http.StatusOK, tasks)
 }
 
-func formatQuery(query views.GetTasksReq) entities.TaskQueryParam {
+func formatQuery(size, page, sort, order string) entities.TaskQueryParam {
 	defaultSize := 10
 	result := entities.TaskQueryParam{
 		Size:   defaultSize,
@@ -61,17 +57,19 @@ func formatQuery(query views.GetTasksReq) entities.TaskQueryParam {
 		SortBy: "created_at",
 		Order:  "desc",
 	}
-	if query.Size != nil && *query.Size > 0 {
-		result.Size = *query.Size
+	s, err := strconv.Atoi(size)
+	if err == nil && s > 0 {
+		result.Size = s
 	}
-	if query.Page != nil && *query.Page > 0 {
-		result.Offset = *query.Page * result.Size
+	p, err := strconv.Atoi(page)
+	if err == nil && p > 0 {
+		result.Offset = (p - 1) * result.Size
 	}
-	if query.SortBy != nil {
-		result.SortBy = *query.SortBy
+	if sort != "" {
+		result.SortBy = sort
 	}
-	if query.Order != nil {
-		result.Order = *query.Order
+	if order == "asc" || order == "desc" {
+		result.Order = order
 	}
 	return result
 }
@@ -132,8 +130,14 @@ func (h *taskHandler) UpdateTask(ginCtx *gin.Context) {
 		_ = ginCtx.Error(customError.InvalidRequest.Wrap(err, "should bind json error"))
 		return
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	if req.Status != constants.Complete && req.Status != constants.Incomplete {
+		_ = ginCtx.Error(customError.InvalidRequest.New("should bind json error"))
+		return
+	}
+	ctx := context.Background()
+
 	task := entities.Task{
+		ID:     taskId,
 		Status: req.Status,
 	}
 	if req.Name != nil {

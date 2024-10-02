@@ -6,8 +6,8 @@ import (
 )
 
 type TaskRepository interface {
-	Find(id string) (models.Task, error)
-	List(param entities.TaskQueryParam) ([]entities.Task, error)
+	Find(id string) (*models.Task, error)
+	List(param entities.TaskQueryParam) ([]*models.Task, error)
 	Create(task entities.Task) error
 	Update(task entities.Task) error
 	Delete(id string) error

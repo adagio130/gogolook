@@ -16,7 +16,7 @@ type CreateTaskReq struct {
 type UpdateTaskReq struct {
 	ID     string           `json:"id" uri:"id"`
 	Name   *string          `json:"name"`
-	Status constants.Status `json:"status" binding:"required" enums:"0,1"`
+	Status constants.Status `json:"status" enum:"0,1"`
 }
 
 type DeleteTaskReq struct {

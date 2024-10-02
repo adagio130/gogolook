@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"tasks/constants"
 	"tasks/domain/entities"
 	"tasks/internal/repository"
 )
@@ -32,8 +33,19 @@ func (t *taskService) GetTasks(ctx context.Context, param entities.TaskQueryPara
 	if err != nil {
 		return nil, err
 	}
-	result.Tasks = tasks
-	result.Limit = len(tasks)
+	result.Tasks = make([]entities.Task, 0)
+	for _, task := range tasks {
+		result.Tasks = append(result.Tasks, entities.Task{
+			ID:      task.ID,
+			Name:    task.Name,
+			Status:  constants.Status(task.Status),
+			Version: task.Version,
+			//CreatedAt: task.CreatedAt,
+		})
+
+	}
+	result.Page = param.Offset/param.Size + 1
+	result.Size = len(tasks)
 	return &result, nil
 
 }

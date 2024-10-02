@@ -46,7 +46,7 @@ func main() {
 	if err = checkTables(db); err != nil {
 		panic(fmt.Errorf("check tables error: %s \n", err))
 	}
-	taskRepo := repository.NewTaskRepository(db)
+	taskRepo := repository.NewTaskRepository(db, logger)
 	taskService := service.NewTaskService(taskRepo)
 	taskHandler := handler.NewTaskHandler(taskService)
 	attaches := []router.Attach{
@@ -62,7 +62,7 @@ func main() {
 		logger.Info("Server shutdown")
 	}()
 	go func() {
-		signalChan := make(chan os.Signal, 2)
+		signalChan := make(chan os.Signal, 1)
 		defer signal.Stop(signalChan)
 
 		signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
@@ -76,7 +76,15 @@ func main() {
 }
 
 func checkTables(db *sql.DB) error {
-	_, err := db.Exec("CREATE TABLE IF NOT EXISTS tasks (id TEXT PRIMARY KEY NOT NULL, name TEXT, status INTEGER, version INTEGER, created_at TEXT)")
+	_, err := db.Exec(`
+	CREATE TABLE IF NOT EXISTS tasks 
+		(id TEXT PRIMARY KEY NOT NULL, 
+		name TEXT NOT NULL, 
+		status INTEGER NOT NULL, 
+		version INTEGER, 
+		created_at TEXT
+		)
+	`)
 	if err != nil {
 		return err
 	}
