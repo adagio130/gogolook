@@ -55,7 +55,7 @@ Retrieve a list of tasks.
 #### Request:
 
 ```bash
-curl -X GET http://localhost:8888/tasks
+curl -X GET http://localhost:8888/tasks?page=1&size=10
 ```
 
 #### Response (200 OK):
